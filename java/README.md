@@ -118,6 +118,50 @@ int choice = scanner.nextInt();
 
 1번을 고르면 위에서 만든 for문으로 상품 목록이 이름과 번호로 쭉 나오고, 2번을 고르면 번호를 입력받아서 그 상품의 `sell()`을 호출한다. 범위를 벗어난 번호를 입력하면 "잘못된 상품 번호입니다" 메시지가 나오도록 처리했다. 3번을 고르면 안내 메시지를 찍고 `break`로 while문을 빠져나가면서 프로그램이 끝난다.
 
+## 입고 / 출고 / 상품 추가·삭제
+
+판매(`sell()`)만 있을 때는 재고가 줄어드는 방향으로만 움직였는데, 실제 상품 관리라면 물건이 들어오는 경우(입고)도 다뤄야 한다는 생각이 들어서 `addStock(quantity)`와 `removeStock(quantity)`를 따로 만들었다.
+
+```java
+public void addStock(int quantity) {
+    if (quantity > 0) {
+        stock += quantity;
+        System.out.println("입고 완료!");
+        System.out.println("현재 재고: " + stock);
+    } else {
+        System.out.println("입고 수량은 1개 이상이어야 합니다.");
+    }
+}
+
+public void removeStock(int quantity) {
+    if (quantity <= 0) {
+        System.out.println("출고 수량은 1개 이상이어야 합니다.");
+    } else if (stock >= quantity) {
+        stock -= quantity;
+        System.out.println("출고 완료!");
+        System.out.println("현재 재고: " + stock);
+    } else {
+        System.out.println("재고가 부족합니다.");
+    }
+}
+```
+
+`sell()`은 한 번에 1개씩만 줄이면 됐지만, 입고/출고는 수량을 입력받기 때문에 그 수량이 유효한지 먼저 걸러야 했다. 특히 출고는 `stock >= quantity`를 확인해서 재고보다 많이 빼내려는 요청을 막아야 한다는 걸 여기서 신경 쓰게 됐다.
+
+메뉴도 조회/판매/종료 3개에서 조회·입고·출고·판매·추가·삭제·종료 7개로 늘어났다. 상품 추가/삭제는 `ArrayList`가 가진 `add()`/`remove(index)`를 그대로 쓰면 되는데, 상품 삭제도 판매·입고·출고처럼 "몇 번 상품"으로 입력받으니까 `products.remove(productNumber - 1)`로 1↔0 인덱스 변환을 또 챙겨야 했다.
+
+```java
+} else if (choice == 5) {
+    scanner.nextLine(); // 이전 nextInt()가 남긴 개행 문자 제거
+    System.out.print("추가할 상품 이름을 입력하세요: ");
+    String newName = scanner.nextLine();
+    ...
+    products.add(new Product(newName, newPrice, newStock));
+}
+```
+
+상품 추가에서 이름은 `Scanner.nextLine()`으로 받아야 하는데, 직전에 `choice`를 `nextInt()`로 읽으면 입력 버퍼에 개행 문자가 남아있어서 이름 입력을 건너뛰어 버리는 문제를 겪었다. `nextInt()` 다음에 `nextLine()`을 한 번 더 호출해서 남은 개행을 비워줘야 한다는 걸 이번에 직접 겪으면서 알게 됐다.
+
 ## 실행 방법
 
 `product-management` 폴더에서:
